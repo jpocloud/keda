@@ -1,0 +1,33 @@
+apiVersion: keda.k8s.io/v1alpha1
+kind: ScaledObject
+metadata:
+  name: prometheus-scaledobject
+  namespace: keda-demo
+spec:
+  scaleTargetRef:
+    deploymentName: productpage-v1
+  pollingInterval: 2 # Optional. Default: 30 seconds
+  cooldownPeriod:  15 # Optional. Default: 300 seconds
+  maxReplicaCount: 15
+  minReplicaCount: 1
+  advanced:                                          # Optional. Section to specify advanced options
+    #restoreToOriginalReplicaCount: false       # Optional. Default: false
+    horizontalPodAutoscalerConfig:                   # Optional. Section to specify HPA related options
+      behavior:                                      # Optional. Use to modify HPA's scaling behavior
+        scaleDown:
+          stabilizationWindowSeconds: 0
+          policies:
+          - type: Pods
+            value: 1
+            periodSeconds: 5
+          - type: Percent
+            value: 25
+            periodSeconds: 5
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus.istio-system.svc.cluster.local:9090
+      metricName: destination_service_name
+      threshold: '10' # Since the threshold count is three, this means that there will be one Pod for if value for sum(rate(http_requests[2m])) remains less than three. If it goes up, there will be an additional Pod for every time the sum(rate(http_requests[2m]))increases by three
+      #query: round(sum(irate(istio_requests_total{destination_service_name="productpage"}[1m])),.001)
+      query: sum(rate(istio_requests_total{destination_service_name="productpage"}[1m]))
