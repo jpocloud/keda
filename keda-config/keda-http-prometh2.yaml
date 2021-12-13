@@ -7,7 +7,7 @@ spec:
   scaleTargetRef:
     name: productpage-v1
   pollingInterval: 1 # Optional. Default: 30 seconds
-  cooldownPeriod:  1 # Optional. Default: 300 seconds
+  cooldownPeriod:  5 # Optional. Default: 300 seconds
   maxReplicaCount: 15
   minReplicaCount: 1
   advanced:                                          # Optional. Section to specify advanced options
@@ -26,3 +26,12 @@ spec:
       metricName: destination_service_name
       threshold: '10' # Since the threshold count is 10, this means that there will be one Pod for if value for sum(rate(http_requests[1])) remains less than three. If it goes up, there will be an additional Pod for every time the sum(rate(http_requests[2m]))increases by three
       query: sum(rate(istio_requests_total{destination_service_name="productpage"}[1m]))
+  - type: cpu
+    metadata:
+      # Required
+      type: Utilization
+      value: "60"
+  - type: memory
+    metadata:
+      type: Utilization
+      value: "60"

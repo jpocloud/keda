@@ -1,4 +1,13 @@
-apiVersion: keda.k8s.io/v1alpha1
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secrets-myqueue
+  namespace: keda-demo
+data:
+  servicebus-connectionstring: <base64-encoded-connection-string>
+---
+apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
 metadata:
   name: azure-servicebus-auth
@@ -9,16 +18,16 @@ spec:
     name: secrets-myqueue
     key: servicebus-connectionstring
 ---
-apiVersion: keda.k8s.io/v1alpha1
+apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: azure-servicebus-queue-scaledobject
   namespace: keda-demo
 spec:
   scaleTargetRef:
-    deploymentName: order-processor
-  pollingInterval: 2 # Optional. Default: 30 seconds
-  cooldownPeriod:  5 # Optional. Default: 300 seconds
+    name: order-processor
+  pollingInterval: 1 # Optional. Default: 30 seconds
+  cooldownPeriod:  2 # Optional. Default: 300 seconds
   minReplicaCount: 1 # Change to define how many minimum replicas you want
   maxReplicaCount: 7
   advanced:                                          # Optional. Section to specify advanced options
@@ -26,10 +35,10 @@ spec:
     horizontalPodAutoscalerConfig:                   # Optional. Section to specify HPA related options
       behavior:                                      # Optional. Use to modify HPA's scaling behavior
         scaleDown:
-          stabilizationWindowSeconds: 15
+          stabilizationWindowSeconds: 5
           policies:
           - type: Percent
-            value: 100
+            value: 50
             periodSeconds: 5
   triggers:
   - type: azure-servicebus
